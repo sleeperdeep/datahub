@@ -172,7 +172,7 @@ class SQLServerSource(SQLAlchemySource):
         self.current_database = None
         self.table_descriptions: Dict[str, str] = {}
         self.column_descriptions: Dict[str, str] = {}
-        self.full_lineage: Dict[str, Dict[str, List[Dict[str, str]]]] = {}
+        self.full_lineage: Dict[str, List[Dict[str, str]]] = {}
         self.procedures_dependencies: Dict[str, List[Dict[str, str | int]]] = {}
         if self.config.include_descriptions:
             for inspector in self.get_inspectors():
@@ -274,9 +274,9 @@ class SQLServerSource(SQLAlchemySource):
         if not self.config.mssql_lineage:
             return []
         result = []
-        for dest in self.full_lineage.get(key, {}):
+        for dest in self.full_lineage.get(key, []):
             dest_name = self.get_identifier(
-                schema=dest.get("schema"), entity=dest.get("name"), inspector=inspector  # type: ignore[attr-defined]
+                schema=dest.get("schema", ""), entity=dest.get("name", ""), inspector=inspector
             )
             dest_urn = make_dataset_urn_with_platform_instance(
                 self.platform,
@@ -597,7 +597,7 @@ class SQLServerSource(SQLAlchemySource):
         # {"U ": "USER_TABLE", "V ": "VIEW", "P ": "SQL_STORED_PROCEDURE"}
         for row in _links:
             _key = f"{db_name}.{row['dst_schema_name']}.{row['dst_object_name']}"
-            self.full_lineage.setdefault(_key, []).append(  # type: ignore[attr-defined, arg-type]
+            self.full_lineage.setdefault(_key, []).append(
                 {
                     "schema": row["src_schema_name"] or row["dst_schema_name"],
                     "name": row["src_object_name"],
