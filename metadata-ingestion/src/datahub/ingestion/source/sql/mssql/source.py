@@ -276,7 +276,9 @@ class SQLServerSource(SQLAlchemySource):
         result = []
         for dest in self.full_lineage.get(key, []):
             dest_name = self.get_identifier(
-                schema=dest.get("schema", ""), entity=dest.get("name", ""), inspector=inspector
+                schema=dest.get("schema", ""),
+                entity=dest.get("name", ""),
+                inspector=inspector,
             )
             dest_urn = make_dataset_urn_with_platform_instance(
                 self.platform,
