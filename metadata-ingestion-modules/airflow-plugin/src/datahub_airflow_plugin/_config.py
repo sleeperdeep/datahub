@@ -72,6 +72,11 @@ class DatahubLineageConfig(ConfigModel):
         description="regex patterns for DAGs to ingest",
     )
 
+    dag_access_control_pattern: AllowDenyPattern = Field(
+        default=AllowDenyPattern.allow_all(),
+        description="regex patterns for DAGs access control",
+    )
+
     log_level: Optional[str] = None
     debug_emitter: bool = False
 
@@ -127,6 +132,9 @@ def get_lineage_config() -> DatahubLineageConfig:
     dag_filter_pattern = AllowDenyPattern.parse_raw(
         conf.get("datahub", "dag_filter_str", fallback='{"allow": [".*"]}')
     )
+    dag_access_control_pattern = AllowDenyPattern.parse_raw(
+        conf.get("datahub", "dag_access_control", fallback='{"allow": [".*"]}')
+    )
 
     return DatahubLineageConfig(
         enabled=enabled,
@@ -145,4 +153,5 @@ def get_lineage_config() -> DatahubLineageConfig:
         datajob_url_link=datajob_url_link,
         render_templates=render_templates,
         dag_filter_pattern=dag_filter_pattern,
+        dag_access_control_pattern=dag_access_control_pattern,
     )

@@ -410,6 +410,17 @@ class DataHubListener:
             logger.debug(f"DAG {task_instance.dag_id} is not allowed by the pattern")
             return
 
+        if not any(
+            [
+                self.config.dag_access_control_pattern.denied(role)
+                for role in task_instance.task.dag.access_control.keys()
+            ]
+        ):
+            logger.debug(
+                f"DAG {task_instance.dag_id} with access control {task_instance.task.dag.access_control} is filtered according to listener config."
+            )
+            return
+
         if self.config.render_templates:
             task_instance = _render_templates(task_instance)
 
@@ -521,6 +532,16 @@ class DataHubListener:
 
         if not self.config.dag_filter_pattern.allowed(dag.dag_id):
             logger.debug(f"DAG {dag.dag_id} is not allowed by the pattern")
+            return
+        if not any(
+            [
+                self.config.dag_access_control_pattern.denied(role)
+                for role in dag.access_control.keys()
+            ]
+        ):
+            logger.debug(
+                f"DAG {dag.dag_id} with access control {dag.access_control} is filtered according to listener config."
+            )
             return
 
         datajob = AirflowGenerator.generate_datajob(
@@ -761,6 +782,16 @@ class DataHubListener:
             assert dag_run.dag_id
             if not self.config.dag_filter_pattern.allowed(dag_run.dag_id):
                 logger.debug(f"DAG {dag_run.dag_id} is not allowed by the pattern")
+                return
+            if not any(
+                [
+                    self.config.dag_access_control_pattern.denied(role)
+                    for role in dag_run.get_dag().access_control.keys()
+                ]
+            ):
+                logger.debug(
+                    f"DAG {dag_run.get_dag().dag_id} with access control {dag_run.get_dag().access_control} is filtered according to listener config."
+                )
                 return
 
             self.on_dag_start(dag_run)
