@@ -413,11 +413,15 @@ class DataHubListener:
         if not any(
             [
                 self.config.dag_access_control_pattern.denied(role)
-                for role in task_instance.task.dag.access_control.keys()
+                for role in (
+                    task_instance.task.dag.access_control.keys()
+                    if task_instance.task.dag.access_control
+                    else ""
+                )
             ]
         ):
             logger.debug(
-                f"DAG {task_instance.dag_id} with access control {task_instance.task.dag.access_control} is filtered according to listener config."
+                f"DAG {task_instance.dag_id} with access control {task_instance.task.dag.access_control or ''} is filtered according to listener config."
             )
             return
 
@@ -536,7 +540,7 @@ class DataHubListener:
         if not any(
             [
                 self.config.dag_access_control_pattern.denied(role)
-                for role in dag.access_control.keys()
+                for role in (dag.access_control.keys() if dag.access_control else "")
             ]
         ):
             logger.debug(
@@ -786,7 +790,11 @@ class DataHubListener:
             if not any(
                 [
                     self.config.dag_access_control_pattern.denied(role)
-                    for role in dag_run.get_dag().access_control.keys()
+                    for role in (
+                        dag_run.get_dag().access_control.keys()
+                        if dag_run.get_dag().access_control
+                        else ""
+                    )
                 ]
             ):
                 logger.debug(
